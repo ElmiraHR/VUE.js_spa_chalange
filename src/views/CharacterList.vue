@@ -53,17 +53,7 @@ export default defineComponent({
         const data = await res.json()
         const filtered = data.results.filter((c: any) => !deletedIds.value.includes(c.id))
         characters.value = filtered
-
-        let nextPage = page.value + 1
-        while (characters.value.length < 20 && nextPage <= totalPages.value) {
-          const resNext = await fetch(`https://rickandmortyapi.com/api/character?page=${nextPage}`)
-          const nextData = await resNext.json()
-          const nextFiltered = nextData.results.filter((c: any) => !deletedIds.value.includes(c.id))
-          characters.value.push(...nextFiltered)
-          nextPage++
-        }
-
-        characters.value = characters.value.slice(0, 20)
+        await fillToTwenty()
       } catch (err) {
         console.error('Failed to fetch characters', err)
       } finally {
@@ -71,10 +61,28 @@ export default defineComponent({
       }
     }
 
+    const fillToTwenty = async () => {
+      let nextPageToLoad = page.value + 1
+      const existingIds = new Set(characters.value.map(c => c.id))
+
+      while (characters.value.length < 20 && nextPageToLoad <= totalPages.value) {
+        const res = await fetch(`https://rickandmortyapi.com/api/character?page=${nextPageToLoad}`)
+        const data = await res.json()
+        const filtered = data.results.filter((c: any) =>
+          !deletedIds.value.includes(c.id) && !existingIds.has(c.id)
+        )
+        characters.value.push(...filtered)
+        nextPageToLoad++
+      }
+
+      characters.value = characters.value.slice(0, 20)
+    }
+
     const deleteCharacter = (id: number) => {
       deletedIds.value.push(id)
       localStorage.setItem('deletedCharacters', JSON.stringify(deletedIds.value))
       characters.value = characters.value.filter(c => c.id !== id)
+      fillToTwenty()
     }
 
     const prevPage = () => {

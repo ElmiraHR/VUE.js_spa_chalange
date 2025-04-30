@@ -10,18 +10,21 @@
       <p><strong>Origin:</strong> {{ character.origin.name }}</p>
       <p><strong>Location:</strong> {{ character.location.name }}</p>
 
-      <p><strong>Episodes:</strong></p>
-      <ul class="episodes-list">
-        <li v-for="ep in character.episode" :key="ep">
-          <a :href="ep" target="_blank" rel="noopener noreferrer">{{ ep }}</a>
-        </li>
-      </ul>
+      <div v-if="loadingEpisodes">Loading episodes...</div>
+      <div v-else>
+        <p><strong>Episodes:</strong></p>
+        <ul class="episodes-list">
+          <li v-for="ep in episodes" :key="ep.id">
+            {{ ep.episode }} — {{ ep.name }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, PropType, onMounted, ref } from 'vue'
 
 export default defineComponent({
   name: 'CharacterModal',
@@ -34,6 +37,30 @@ export default defineComponent({
       type: Function as PropType<() => void>,
       required: true,
     },
+  },
+  setup(props) {
+    const episodes = ref<any[]>([])
+    const loadingEpisodes = ref(true)
+
+    const fetchEpisodes = async () => {
+      try {
+        const results = await Promise.all(
+          props.character.episode.map((url: string) => fetch(url).then(res => res.json()))
+        )
+        episodes.value = results
+      } catch (error) {
+        console.error('Failed to load episode data', error)
+      } finally {
+        loadingEpisodes.value = false
+      }
+    }
+
+    onMounted(fetchEpisodes)
+
+    return {
+      episodes,
+      loadingEpisodes,
+    }
   },
 })
 </script>
