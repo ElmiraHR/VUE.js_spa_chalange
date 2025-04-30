@@ -2,7 +2,7 @@
 
 (Vue 3 + TypeScript)
 
-Build a small single‑page application that presents characters from the public **Rick & Morty API** (`https://rickandmortyapi.com/api/character`).
+Build a small single‑page application that presents characters from the public **Rick & Morty API** (https://rickandmortyapi.com/api/character).
 
 ## Core requirements
 
@@ -14,7 +14,7 @@ Beyond that the choice of tooling, libraries, architecture, styling, state manag
 
 ## Repository & workflow
 
-- You receive an empty repository with this README on `main`.
+- You receive an empty repository with this README on main.
 - Work on feature/bug‑style branches; when you're happy, surface your changes in the usual collaboration‑friendly way so they can be reviewed at a glance.
 - Keep commits small, meaningful and in English.
 - Add unit or end‑to‑end tests where they add value; aim for relevance, not coverage numbers.
@@ -33,4 +33,3 @@ When the time‑box ends, simply push what you have.
 ## Quick start
 
 Good luck & have fun!
-
