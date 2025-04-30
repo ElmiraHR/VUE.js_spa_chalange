@@ -12,15 +12,20 @@
       >
         <img :src="character.image" :alt="character.name" />
         <h3>{{ character.name }}</h3>
-        <button @click="deleteCharacter(character.id)">Delete</button>
+        <button class="delete-button" @click="deleteCharacter(character.id)">Delete</button>
       </div>
+    </div>
+
+    <div class="pagination">
+      <button @click="prevPage" :disabled="page === 1">Prev</button>
+      <span>Page {{ page }}</span>
+      <button @click="nextPage">Next</button>
     </div>
   </div>
 </template>
 
-
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 
 export default defineComponent({
   name: 'CharacterList',
@@ -28,14 +33,32 @@ export default defineComponent({
     const characters = ref<any[]>([])
     const deletedIds = ref<number[]>([])
     const loading = ref(true)
+    const page = ref(1)
+    const totalPages = ref(42)
 
     const fetchCharacters = async () => {
+      loading.value = true
       try {
-        const res = await fetch('https://rickandmortyapi.com/api/character?page=1')
+        const res = await fetch(`https://rickandmortyapi.com/api/character?page=${page.value}`)
         const data = await res.json()
-        characters.value = data.results.filter(
+        const filtered = data.results.filter(
           (c: any) => !deletedIds.value.includes(c.id)
         )
+
+        characters.value = filtered
+
+        let nextPage = page.value + 1
+        while (characters.value.length < 20 && nextPage <= totalPages.value) {
+          const resNext = await fetch(`https://rickandmortyapi.com/api/character?page=${nextPage}`)
+          const nextData = await resNext.json()
+          const nextFiltered = nextData.results.filter(
+            (c: any) => !deletedIds.value.includes(c.id)
+          )
+          characters.value.push(...nextFiltered)
+          nextPage++
+        }
+
+        characters.value = characters.value.slice(0, 20)
       } catch (err) {
         console.error('Failed to fetch characters', err)
       } finally {
@@ -49,6 +72,14 @@ export default defineComponent({
       characters.value = characters.value.filter(c => c.id !== id)
     }
 
+    const prevPage = () => {
+      if (page.value > 1) page.value--
+    }
+
+    const nextPage = () => {
+      if (page.value < totalPages.value) page.value++
+    }
+
     onMounted(() => {
       const stored = localStorage.getItem('deletedCharacters')
       if (stored) {
@@ -57,10 +88,15 @@ export default defineComponent({
       fetchCharacters()
     })
 
+    watch(page, fetchCharacters)
+
     return {
       characters,
       deleteCharacter,
       loading,
+      page,
+      prevPage,
+      nextPage,
     }
   },
 })
@@ -83,13 +119,13 @@ h1 {
 }
 
 .character-list {
-  flex: 1;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 20px;
+  gap: 15px;
   justify-items: center;
   align-items: stretch;
+  flex: 1;
 }
 
 .character-card {
@@ -97,9 +133,9 @@ h1 {
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  max-width: 260px;
-  min-height: 200px;
-  padding: 10px;
+  max-width: 240px;
+  height: 180px;
+  padding: 8px;
   text-align: center;
   background-color: #f3f3f3;
   border: 1px solid #ccc;
@@ -109,22 +145,49 @@ h1 {
 
 .character-card img {
   width: 100%;
+  height: 120px;
+  object-fit: cover;
   border-radius: 6px;
 }
 
 .character-card h3 {
-  font-size: 16px;
-  margin: 10px 0;
-  min-height: 40px;
+  font-size: 14px;
+  margin: 0;
+  min-height: 20px;
 }
-
-button {
-  margin-top: auto;
-  padding: 5px 10px;
+.delete-button {
+  margin-bottom: 6px; 
+  padding: 4px 24px;
   background-color: #ff4d4f;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 13px;
 }
+
+.delete-button:hover {
+  background-color: #e03a3a;
+}
+
+.pagination {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.pagination button {
+  padding: 5px 10px;
+  margin: 0 8px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination button[disabled] {
+  background-color: #ccc;
+  cursor: default;
+}
+
 </style>
