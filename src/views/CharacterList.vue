@@ -2,6 +2,8 @@
   <div class="page-container">
     <h1>Rick and Morty Characters</h1>
 
+    <button class="show-deleted-button" @click="showDeletedModal = true">Show Deleted</button>
+
     <div v-if="loading">Loading...</div>
 
     <div v-else class="character-list">
@@ -28,16 +30,24 @@
       :character="selectedCharacter"
       :onClose="closeModal"
     />
+
+    <DeletedModal
+      v-if="showDeletedModal"
+      :deletedIds="deletedIds"
+      @close="showDeletedModal = false"
+      @restore="restoreCharacter"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch } from 'vue'
 import CharacterModal from '@/components/CharacterModal.vue'
+import DeletedModal from '@/components/DeletedModal.vue'
 
 export default defineComponent({
   name: 'CharacterList',
-  components: { CharacterModal },
+  components: { CharacterModal, DeletedModal },
   setup() {
     const characters = ref<any[]>([])
     const deletedIds = ref<number[]>([])
@@ -45,6 +55,7 @@ export default defineComponent({
     const page = ref(1)
     const totalPages = ref(42)
     const selectedCharacter = ref<any | null>(null)
+    const showDeletedModal = ref(false)
 
     const fetchCharacters = async () => {
       loading.value = true
@@ -85,6 +96,12 @@ export default defineComponent({
       fillToTwenty()
     }
 
+    const restoreCharacter = (id: number) => {
+      deletedIds.value = deletedIds.value.filter(deletedId => deletedId !== id)
+      localStorage.setItem('deletedCharacters', JSON.stringify(deletedIds.value))
+      fetchCharacters()
+    }
+
     const prevPage = () => {
       if (page.value > 1) page.value--
     }
@@ -114,6 +131,7 @@ export default defineComponent({
     return {
       characters,
       deleteCharacter,
+      restoreCharacter,
       loading,
       page,
       prevPage,
@@ -121,6 +139,8 @@ export default defineComponent({
       selectedCharacter,
       openModal,
       closeModal,
+      deletedIds,
+      showDeletedModal,
     }
   },
 })
@@ -129,7 +149,23 @@ export default defineComponent({
 <style scoped>
 h1 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
+}
+
+.show-deleted-button {
+  margin: 0 auto 10px;
+  display: block;
+  background-color: #888;
+  color: white;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.show-deleted-button:hover {
+  background-color: #666;
 }
 
 .page-container {
@@ -196,7 +232,7 @@ h1 {
 }
 
 .pagination {
-  margin-top: 10px;
+  margin: 10px 0;
   text-align: center;
 }
 
