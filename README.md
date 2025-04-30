@@ -33,3 +33,67 @@ When the time‑box ends, simply push what you have.
 ## Quick start
 
 Good luck & have fun!
+
+
+
+
+Thamks a lot!
+
+
+
+
+
+🧩Installation & Run Instructions
+
+Requirements :
+
+Node.js version 18+
+
+npm (comes with Node.js)
+
+Setup:
+
+# Install dependencies
+npm install
+
+# Start local development server
+npm run dev
+
+After running, the app will be available at: http://localhost:5173
+
+# Tech Stack & Implementation
+
+This project was built using:
+
+
+Vue 3 with Composition API
+
+TypeScript for type safety
+
+Vite for fast development server and build process
+
+LocalStorage API to persist deleted character IDs between reloads
+
+Fetch API to load paginated character data from the Rick and Morty API
+
+Scoped CSS for styling components
+
+
+
+Features implemented:
+
+
+Paginated list of characters (20 per page)
+
+Characters can be deleted and stay deleted across reloads
+
+Deleted characters never reappear — even if they’re returned by the API on later pages
+
+Modal opens with detailed character info (including nested data from additional JSON endpoints)
+
+Separate modal displays deleted characters with ability to restore
+
+Clear Git history with feature-based branches and meaningful commit messages
+
+
+
