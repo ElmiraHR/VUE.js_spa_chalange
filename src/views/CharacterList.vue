@@ -9,10 +9,11 @@
         v-for="character in characters"
         :key="character.id"
         class="character-card"
+        @click="openModal(character)"
       >
         <img :src="character.image" :alt="character.name" />
         <h3>{{ character.name }}</h3>
-        <button class="delete-button" @click="deleteCharacter(character.id)">Delete</button>
+        <button class="delete-button" @click.stop="deleteCharacter(character.id)">Delete</button>
       </div>
     </div>
 
@@ -21,39 +22,43 @@
       <span>Page {{ page }}</span>
       <button @click="nextPage">Next</button>
     </div>
+
+    <CharacterModal
+      v-if="selectedCharacter"
+      :character="selectedCharacter"
+      :onClose="closeModal"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch } from 'vue'
+import CharacterModal from '@/components/CharacterModal.vue'
 
 export default defineComponent({
   name: 'CharacterList',
+  components: { CharacterModal },
   setup() {
     const characters = ref<any[]>([])
     const deletedIds = ref<number[]>([])
     const loading = ref(true)
     const page = ref(1)
     const totalPages = ref(42)
+    const selectedCharacter = ref<any | null>(null)
 
     const fetchCharacters = async () => {
       loading.value = true
       try {
         const res = await fetch(`https://rickandmortyapi.com/api/character?page=${page.value}`)
         const data = await res.json()
-        const filtered = data.results.filter(
-          (c: any) => !deletedIds.value.includes(c.id)
-        )
-
+        const filtered = data.results.filter((c: any) => !deletedIds.value.includes(c.id))
         characters.value = filtered
 
         let nextPage = page.value + 1
         while (characters.value.length < 20 && nextPage <= totalPages.value) {
           const resNext = await fetch(`https://rickandmortyapi.com/api/character?page=${nextPage}`)
           const nextData = await resNext.json()
-          const nextFiltered = nextData.results.filter(
-            (c: any) => !deletedIds.value.includes(c.id)
-          )
+          const nextFiltered = nextData.results.filter((c: any) => !deletedIds.value.includes(c.id))
           characters.value.push(...nextFiltered)
           nextPage++
         }
@@ -80,6 +85,14 @@ export default defineComponent({
       if (page.value < totalPages.value) page.value++
     }
 
+    const openModal = (character: any) => {
+      selectedCharacter.value = character
+    }
+
+    const closeModal = () => {
+      selectedCharacter.value = null
+    }
+
     onMounted(() => {
       const stored = localStorage.getItem('deletedCharacters')
       if (stored) {
@@ -97,6 +110,9 @@ export default defineComponent({
       page,
       prevPage,
       nextPage,
+      selectedCharacter,
+      openModal,
+      closeModal,
     }
   },
 })
@@ -155,8 +171,9 @@ h1 {
   margin: 0;
   min-height: 20px;
 }
+
 .delete-button {
-  margin-bottom: 6px; 
+  margin-bottom: 6px;
   padding: 4px 24px;
   background-color: #ff4d4f;
   color: white;
@@ -189,5 +206,4 @@ h1 {
   background-color: #ccc;
   cursor: default;
 }
-
 </style>
