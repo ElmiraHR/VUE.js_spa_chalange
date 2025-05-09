@@ -32,14 +32,8 @@ When the time‑box ends, simply push what you have.
 
 ## Quick start
 
-Good luck & have fun!
 
-
-
-
-Thamks a lot!
-
-
+################################################################################################################################
 
 
 
